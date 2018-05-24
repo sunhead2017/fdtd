@@ -1,0 +1,132 @@
+\documentclass[UTF8]{ctexart}
+\usepackage{amsmath}
+\usepackage[left=1.25in,right=1.25in,top=1in,bottom=1in]{geometry} 
+\usepackage{graphicx}
+\usepackage{bmpsize}
+\usepackage{epstopdf}
+\title{利用FDTD法八木模拟八木天线发射电参数}
+\author{郁博文 \and 孙浩}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+\section{摘要}
+\paragraph{自从1873年麦克斯韦（Maxwell）从理论上预言电磁波的存在，并于1897年由马可尼（Marconi）首次获得一个完整的无线电报系统专利以来，伴随科学技术的不断进步，无线电技术在电视、广播、移动通信、导航、卫星等领域取得了极为丰富的成果。}
+\paragraph{天线是任何无线电通信系统都离不开的重要前端器件。天线的任务是将发射机输出的高频电流能量（导波）转换成电磁波辐射出去，或将空间电波信号转换成高频电流能量送给接收机。为了能良好的实现上述目的，要求天线具有一定的方向特性，较高的转换效率，能满足系统正常工作的频带宽度。天线作为无线电系统的不可缺少的重要部件，其本身的质量直接影响无线电系统的整体性能。}
+\paragraph{八木天线也叫做“引向天线”、“八木宇田天线”（Yagi-Uda antenna）、“寄生天线”，是一种定向天线。这种天线是1928年由日本天线专家八木秀次和宇田新太郎两人设计的。因为八木天线具有增益高、方向性强、结构简单的优点，它被广泛应用在无线电测向和长距离无线电通信。但是，若使用八木天线以收看模拟电视，容易受天气及地形环境所影响，导致电视画面出现雪花、残影等的现象。}
+\paragraph{时域有限差分法（Finite Different Time Domain，FDTD）是一种电磁场数值计算的新方法，对电磁场的分量E、H在空间和时间上采取交替抽样的离散方式，应用这种离散方式将含时间变量的麦克斯韦旋度方程转化为一组差分方程，并在时间轴上逐步推进地求解空间电磁场。}
+\paragraph{这篇文章作者用时域有限差分法（FDTD）计算和模拟八木天线的电参数，从而探讨使八木天线的各个参数达到最优的天线构造。}
+\paragraph{关键字：八木天线 FDTD 电磁学 无线电 麦克斯韦方程组 数值计算}
+\newpage
+\section{符号说明}
+\begin{tabular}{cp{24em}}
+\hline
+符号 & 物理意义 \\
+	\hline
+	$E$ & 电场强度 \\
+	$H$ & 磁场强度 \\
+	$\varepsilon_0$ & 真空介电常数 \\
+	$\mu_0$ & 真空磁导率 \\
+	\hline
+\end{tabular}
+\newpage
+\section{天线基本原理}
+\subsection{基本振子辐射原理}
+\paragraph{尽管各类天线的结构、特性各有不同，但是分析他们的基础却是建立在电、磁基本振子的辐射机理上。}
+\subsubsection{电基本振子}
+\paragraph{电基本振子（Electric Short Dipole）又称电流元，他是一段理想的高频电流直导线，其长度l远小于波长$\lambda$，同时振子沿线的电流处处等幅同相。如图1所示，电磁场理论中已经给出了在球坐标系原点O沿轴放置的点基本振子在无限大自由空间中场强的表达式：}
+\begin{align}
+H_{r} & = 0 \\ H_{\theta} & = 0 \\ H_{\varphi} & = \frac{Il}{4\pi}\sin \theta(j\frac{k}{r}+\frac{1}{r^2})e^{-jkr}\\
+E_{r} & = \frac{Il}{4\pi}\frac{2}{\omega \varepsilon_{0}}\cos \theta(\frac{k}{r^2}-j\frac{1}{r^3})e^(-jkr)\\
+E_{\theta} & = \frac{Il}{4\pi}\frac{1}{\omega \varepsilon_{0}}\sin \theta(j\frac{k^2}{r}+\frac{k}{r^2}-j\frac{1}{r^3})e^{-jkr} \\
+E_{\varphi} & = 0
+\end{align}
+\paragraph{在近场区,认为$kr<<1$，所以，电基本振子的近场区表达式为：}
+\begin{align}
+H_{\varphi} & = \frac{Il}{4\pi r^2}\sin \theta \\ E_r & = -j\frac{Il}{4\pi r^3}\frac{2}{\omega \varepsilon_0} \cos \theta \\ E_{\theta} & = -j\frac{Il}{4\pi r^3}\frac{1}{\omega \varepsilon_0}\sin \theta \\
+E_{\varphi} & = H_r = H_{\theta} = 0
+\end{align}
+\paragraph{在远场区，认为$kr>>1$，所以，电基本振子的远场区表达式为：}
+\begin{align}
+H_{\varphi} & = j\frac{Il}{2\lambda r}\sin \theta e^{-jkr} \\
+E_{\theta} & = j\frac{60\pi Il}{\lambda r}\sin \theta e^{-jkr} \\ 
+H_r & = H_{\theta} = E_r = E_{\varphi} = 0
+%\end{align}
+\end{align}
+\subsubsection{磁基本振子}
+\paragraph{磁基本振子（Magnetc Short Dipole）又称磁流元、磁偶极子，尽管它是虚拟的，迄今为止不能确定在自然界中是否有孤立的磁荷和磁流存在，但是用此概念可以简化计算，因此讨论它是有必要的。}
+\paragraph{如图所示，设想一段长为$l(l>>\lambda）$的磁流元$I_ml$置于坐标原点，根据电磁对偶性原理，可以得到磁基本振子在远区辐射场的表达式：}
+\begin{align}
+E_{\varphi} & = -j\frac{I_ml}{2\lambda r}\sin \theta e^{-jkr}\\H_{\theta} & = k\frac{I_ml}{2\lambda r}\sqrt{\frac{\varepsilon_0}{\mu_0}}\sin \theta e^{-jkr}
+\end{align}
+\paragraph{比较电基本振子的辐射场和磁基本振子的辐射场，可得知他们除了辐射场的极化方向相互正交外，其他特性完全相同。}
+\subsection{发射天线的电参数}
+\paragraph{描述天线工作特性的参数称为天线的电参数，他是定量衡量天线性能的尺度。大多数天线的电参数是针对发射状态规定的，以衡量天线把高频电流能量转变为空间电磁波能量以及定向辐射的能力。}
+\subsubsection{方向函数}
+\paragraph{虽然天线发出的电磁波是球面波，但却不是均匀球面波，因此，任何一个天线的辐射场都具有方向性。所谓方向性，就是在相同距离条件下，天线辐射场的相对值与空间方向（$\theta 、\varphi$）的关系。}
+\paragraph{如果天线辐射的电场强度是$E(r,\theta,\varphi)$，把电场强度写成：}
+\begin{equation}
+|E(r,\theta,\varphi)| = \frac{60I}{r}f(\theta,\varphi)
+\end{equation}
+\paragraph{式中$I$为归算电流，对于驻波天线，通常取波腹电流为归算电流；$f(\theta,\varphi)$即为场强方向函数。因此方向函数的定义为：}
+\begin{equation}
+f(\theta,\varphi) = \frac{|E(r,\theta,\varphi)|}{60I/r}
+\end{equation}
+\paragraph{将电基本振子的远场区辐射表达式代入可以得到电基本振子的方向函数：}
+\begin{equation}
+f(\theta,\varphi) = \frac{\pi l}{\lambda}|\sin \theta|
+\end{equation}
+\paragraph{为了便于比较不同天线的方向性，通常采取归一化方向函数，$F(\theta,\varphi) = \frac{f(\theta,\varphi)}{f_{max}(\theta,\varphi)}$，所以归一化之后电基本振子的方向函数为：}
+\begin{equation}
+F(\theta,\varphi) = |\sin \theta|
+\end{equation}
+\subsubsection{方向图}
+\paragraph{将方向函数用曲线描绘出来，就是方向图。方向图是天线等距离处，天线辐射场大小在空间中的相对分布随时间变化的图形。依据归一化方向函数可以描绘出归一化方向图。变化的$\theta$和$\varphi$得出的方向图是立体方向图。对于电基本振子，由归一化的方向函数得出的方向图如图所示：}
+\paragraph{图片}
+\paragraph{在实际中，工程上常常采用两个特定的正交平面方向图。在自由空间中，两个最重要的平面方向图是$E$面和$H$面方向图。$E$面即电场强度矢量所在并包含最大辐射方向的平面；$H$面即磁场强度矢量所在并包含最大辐射方向的方面。}
+\subsubsection{天线效率}
+\paragraph{一般来说，载有高频电流的天线道题及其绝缘介质都会产生损耗，因此输入天线的实际功率并不能完全转变为电磁波能量。用天线效率（Efficiency）来表示这种能量转化的有效程度。天线的效率定义为天线辐射功率$P_{r}$与输入功率$P_{in}$之比，记为$\eta_{A}$，即：}
+\begin{equation}
+\eta_{A} = \frac{P_r}{P_{in}}
+\end{equation}
+\paragraph{辐射功率$P_{r}$与辐射电阻$R_r$，损耗功率$P_l$与损耗电阻$R_l$的关系可以表述如下：}
+\begin{align}
+P_r &= \frac{1}{2}I^2R_r\\P_l &= \frac{1}{2}I^2R_l
+\end{align}
+\paragraph{所以，天线效率可以表示为：}
+\begin{equation}
+\eta_A = \frac{P_r}{P_r + P_l}=\frac{R_r}{R_r + R_l}
+\end{equation}
+\paragraph{一般来讲，损耗电阻的计算是比较困难的，但可由实验确定。从上式可以看出若要提高天线效率，必须尽可能减小损耗电阻和提高辐射电阻。}
+\subsubsection{增益系数}
+\paragraph{增益系数（Gain）表述了天线的定向收益程度。增益系数的定义是：在同一距离及相同输入功率的条件下，某天线在最大辐射方向上的辐射功率密度$S_{max}$和理想无方向性天线（理想点源）的辐射功率密度$S_{0}$之比，记为$G$，用公式表示如下：}
+\begin{equation}
+G = \left.\frac{S_{max}}{S_{0}}\right|_{P_{in}=P_{in0}}=\left.\frac{|E_{}max|^2}{|E_{0}|^2}\right|_{P_{in}=P_{in0}}
+\end{equation}
+\paragraph{式中$P_{in}$、$P_{in0}$分别为实际天线和理想无方向性天线的输入功率。理想无方向性天线本身的增益系数为1。}
+\paragraph{增益系数也可以用分贝表示为$10lgG$。}
+\subsubsection{输入阻抗}
+\paragraph{天线通过传输线和发射机相连，天线作为传输线的负载，天线和传输线的连接处称为天线的输入端，天线输入端呈现的阻抗值定义为天线的输入阻抗（Input Resistance），即：}
+\begin{equation}
+Z_{in} = \frac{U_{in}}{I_{in}} = R_{in} + iX_{in}
+\end{equation}
+\paragraph{其中，$R_{in}$、$X_{in}$分别为输入电阻和输入电抗。天线的输入阻抗取决于天线的结构、工作频率、以及周围环境的影响，大多数天线的输入阻抗通过近似计算和实验测定获得。}
+\subsubsection{频带宽度}
+\paragraph{所有天线都必须工作在某一特定的频率范围内，当工作频率超出这个频率范围之外，天线的工作性能将下降而不能满足工作的要求，这一频率范围称为频带宽度（Bandwidth）。根据频带宽度的不同，可以把天线分为窄频带天线、宽频带天线和超宽频带天线。}
+\section{八木天线}
+\paragraph{八木天线由一个有源振子、一个无源反射器和若干个无源引向器平行排列而成。这种天线因日本人八木秀次和宇田新太郎于1926年最先提出而得名。}
+\paragraph{如下图所示，有源振子近似为半波振子，主要作用是提供辐射能量；无源振子的作用是使辐射能量集中到天线的端向。其中稍长于有源振子的无源振子起反射能量作用。称为反射器；较有源振子振子稍短的无源振子起引导能量作用，称为引向器。}
+%\includegraphics{bamutianxianshiyitu.eps}
+%\includegraphics{bamutianxian}
+\paragraph{一般有几个振子，就称为几元天线。}
+\paragraph{八木天线具有很好的方向性，较偶极天线有较高的增益，用它来测向、远距离通信效果特别好。如果再配上仰角和方位旋转控制装置，便可以向空间中的任意方向发射和接受电磁波，这是普通的直立天线无法做到的。}
+\section{时域有限差分法}
+
+
+\end{document}
+
+
